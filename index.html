@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" id="meta-theme-color" content="#121212">
+  <title>Anshu Rajhans · vitcoore · Gaming & Dev Hub</title>
+  
+  <!-- Dynamic PWA Manifest -->
+  <link id="dynamic-manifest" rel="manifest" href="">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@300;400;500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            arcadeBg: 'var(--bg-color)',
+            surface: 'var(--surface-color)',
+            textMain: 'var(--text-primary)',
+            textDim: 'var(--text-secondary)',
+            neonGreen: '#39ff14',
+            neonYellow: '#ffde17',
+            neonRed: '#ff3b30'
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            arcade: ['Anton', 'sans-serif'],
+            retro: ['"Press Start 2P"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- SweetAlert2 & iziToast CDNs -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Phosphor Icons & Font Awesome -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ----- GAMING UI VARIABLE THEMES (MATT SHADES) ----- */
+    :root {
+      --bg-color: #121212; /* Sleek Matte Black */
+      --surface-color: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --border-color: rgba(255, 255, 255, 0.05);
+      --neon-glow: 0 0 20px rgba(255, 222, 23, 0.1);
+    }
+
+    body.light-theme {
+      --bg-color: #f5f5f7; /* Apple Luxury Matte White */
+      --surface-color: #ffffff;
+      --text-primary: #121212;
+      --text-secondary: #5a5a64;
+      --border-color: rgba(0, 0, 0, 0.06);
+      --neon-glow: 0 10px 30px -5px rgba(0, 0, 0, 0.03);
+    }
+
+    /* ABSOLUTE ZERO TOP GAP — header flush to viewport edge */
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      top: 0;
+      left: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    /* main app container — remove any top padding so header sits at very top */
+    #app {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    /* header container extra safety */
+    header {
+      margin-top: 0 !important;
+      top: 0;
+    }
+
+    /* Bento Grid Hover Effects */
+    .bento-card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--neon-glow);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .bento-card:hover {
+      border-color: #ffde17;
+      box-shadow: 0 12px 30px -10px rgba(255, 222, 23, 0.2);
+    }
+
+    /* Scrollbars */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    #three-canvas-container canvas {
+      outline: none;
+    }
+
+    @keyframes loadingAnim {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .animate-loading {
+      animation: loadingAnim 1.8s ease-in-out infinite;
+    }
+
+    /* CUSTOMIZABLE SHAKE LEVELS (LIGHT VS STRONG) */
+    @keyframes rumbleLight {
+      0% { transform: translate(0, 0); }
+      10% { transform: translate(-0.5px, -0.5px); }
+      20% { transform: translate(-1px, 0px); }
+      30% { transform: translate(0.5px, 0.5px); }
+      40% { transform: translate(0.5px, -0.5px); }
+      50% { transform: translate(-0.5px, 0.5px); }
+      60% { transform: translate(-1px, -0.5px); }
+      75% { transform: translate(0.5px, 0.5px); }
+      90% { transform: translate(-0.5px, -0.5px); }
+      100% { transform: translate(0, 0); }
+    }
+    @keyframes rumbleStrong {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      10% { transform: translate(-1.5px, -1.5px) rotate(-0.5deg); }
+      20% { transform: translate(-2px, 0px) rotate(0.5deg); }
+      30% { transform: translate(1.5px, 1.5px) rotate(0deg); }
+      40% { transform: translate(1.5px, -1.5px) rotate(0.5deg); }
+      50% { transform: translate(-1.5px, 1.5px) rotate(-0.5deg); }
+      60% { transform: translate(-2px, -1.5px) rotate(0deg); }
+      75% { transform: translate(1.5px, 1.5px) rotate(0.5deg); }
+      90% { transform: translate(-1.5px, -1.5px) rotate(-0.5deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+    .animate-rumble-light {
+      animation: rumbleLight 0.2s linear;
+    }
+    .animate-rumble-strong {
+      animation: rumbleStrong 0.28s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    /* SPLASH SCREEN - completely removed from layout after fade */
+    #splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      pointer-events: none;
+    }
+    #splash .splash-content {
+      pointer-events: none;
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-neonYellow selection:text-black">
+
+<!-- SPLASH SCREEN (fixed, removed from layout after init) -->
+<div id="splash">
+  <div class="splash-content">
+    <div class="font-arcade text-6xl md:text-8xl text-neonYellow tracking-widest">
+      VITCOORE
+    </div>
+    <div class="font-retro text-[9px] md:text-xs text-zinc-500 uppercase tracking-[0.25em] mt-4">
+      Anshu Rajhans · System Initializing...
+    </div>
+    <div class="w-48 h-1 bg-zinc-800 rounded-full mx-auto mt-6 overflow-hidden relative">
+      <div class="absolute inset-y-0 left-0 w-1/2 bg-neonYellow animate-loading"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP CONTAINER - NO TOP PADDING, HEADER FLUSH TO EDGE -->
+<div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative hidden" id="app">
+
+  <!-- TOP HEADER (snugly fit to the very top boundary - ZERO margin/padding above) -->
+  <header class="flex items-center justify-between py-4 px-6 rounded-3xl bg-surface border border-zinc-200 dark:border-white/5 shadow-md mt-0">
+    <div class="flex items-center gap-3">
+      <div class="flex gap-1.5 cursor-pointer" onclick="toggleMenu()">
+        <span class="w-3 h-3 rounded-full bg-neonRed shadow-sm"></span>
+        <span class="w-3 h-3 rounded-full bg-neonYellow shadow-sm"></span>
+        <span class="w-3 h-3 rounded-full bg-neonGreen shadow-sm"></span>
+      </div>
+      <div class="font-retro text-[9px] hidden md:block tracking-widest text-zinc-400">VITCOORE.SYS</div>
+    </div>
+
+    <!-- Center Logo framed tightly -->
+    <div class="font-arcade text-2xl tracking-tighter text-textMain cursor-pointer select-none" onclick="triggerEasterEgg()">
+      VITCOORE<span class="text-neonYellow">.</span>
+    </div>
+
+    <!-- Right Controls Grid -->
+    <div class="flex items-center gap-2">
+      <button onclick="showStormSettings()" class="w-9 h-9 rounded-full bg-zinc-200 dark:bg-white/5 border border-zinc-300 dark:border-white/10 flex items-center justify-center text-sm hover:scale-105 transition-transform" title="Storm Settings">
+        <i class="ph ph-gear text-lg text-neonYellow"></i>
+      </button>
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-zinc-200 dark:bg-white/5 border border-zinc-300 dark:border-white/10 flex items-center justify-center text-sm hover:scale-105 transition-transform" title="Theme Toggle">
+        <i class="fas fa-moon text-neonYellow" id="themeIcon"></i>
+      </button>
+      <div class="w-px h-5 bg-zinc-300 dark:bg-white/10 mx-1"></div>
+      <div class="flex items-center gap-2">
+        <a href="https://instagram.com/vitcoore" target="_blank" class="w-8 h-8 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center hover:bg-neonYellow hover:text-black transition-colors" title="Instagram"><i class="ph ph-instagram-logo text-base"></i></a>
+        <a href="https://youtube.com/@vitcoore" target="_blank" class="w-8 h-8 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center hover:bg-neonYellow hover:text-black transition-colors" title="YouTube"><i class="ph ph-youtube-logo text-base"></i></a>
+        <a href="https://github.com/vitcoore" target="_blank" class="w-8 h-8 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center hover:bg-neonYellow hover:text-black transition-colors" title="GitHub"><i class="ph ph-github-logo text-base"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO PANEL -->
+  <section class="flex flex-col lg:flex-row items-center mt-8 lg:mt-12 gap-8 border-b-2 border-neonYellow/20 pb-16">
+    <div class="flex-1 w-full text-center lg:text-left z-10">
+      <span class="font-retro text-[10px] text-neonYellow tracking-[0.3em] uppercase mb-4 block">LEVEL // 02 WEB DEV</span>
+      <h1 class="font-arcade text-[5rem] sm:text-[7rem] lg:text-[8rem] leading-[0.85] tracking-tighter mb-8 uppercase text-textMain">
+        ANSHU<br>RAJHANS
+      </h1>
+      <div class="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start">
+        <p class="text-textDim text-sm max-w-sm leading-relaxed font-sans">
+          ⚡ Full-stack dev, PWA designer, and retro game developer. Degree is just a paper — my real flex is 15+ premium browser games shipped online.
+        </p>
+        <button onclick="showInfoAlert()" class="bg-textMain text-arcadeBg rounded-full pl-6 pr-2 py-2 flex items-center gap-4 text-xs font-bold uppercase tracking-wider hover:scale-105 transition-transform">
+          Inspect Stats
+          <div class="w-8 h-8 bg-neonYellow rounded-full flex items-center justify-center text-black"><i class="ph-fill ph-game-controller text-lg"></i></div>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 3D Thunder Cloud Container -->
+    <div class="flex-1 w-full relative">
+      <div id="three-canvas-container" class="relative w-full aspect-square max-w-[500px] mx-auto lg:ml-auto"></div>
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-zinc-900/80 text-zinc-300 border border-white/10 text-[9px] font-retro px-4 py-1.5 rounded-full backdrop-blur-md pointer-events-none uppercase tracking-widest select-none">
+        Storm System Active ⛈️
+      </div>
+    </div>
+  </section>
+
+  <!-- BENTO LEVEL GRID (PORTFOLIO PROJECTS) -->
+  <section id="works-grid" class="mt-20">
+    <div class="flex items-center gap-3 mb-10">
+      <i class="fas fa-gamepad text-neonYellow text-3xl"></i>
+      <h2 class="font-arcade text-3xl uppercase tracking-tight text-textMain">LEVEL SELECT · MAIN QUESTS</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      
+      <!-- Quest 1: VIPWEB.SHOP -->
+      <div class="bento-card md:col-span-2 rounded-[2.5rem] p-8 flex flex-col justify-between group">
+        <div class="flex justify-between items-start mb-6">
+          <div>
+            <span class="font-retro text-[10px] text-neonYellow uppercase tracking-wider">Quest 01 · Flagship Arcade</span>
+            <h3 class="text-4xl font-bold font-arcade tracking-tight text-textMain mt-1">VIPWEB.SHOP</h3>
+          </div>
+          <div class="w-11 h-11 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center bg-white/5"><i class="ph ph-game-controller text-xl"></i></div>
+        </div>
+        
+        <!-- Premium Arcade Cabinet SVG Illustration -->
+        <div class="bg-zinc-100 dark:bg-zinc-900/30 rounded-2xl aspect-[21/9] mb-6 flex items-center justify-center overflow-hidden relative group border border-zinc-200 dark:border-white/5">
+          <svg class="w-full h-full p-4 object-contain transition-transform duration-500 group-hover:scale-105" viewBox="0 0 800 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="250" y="30" width="300" height="240" rx="20" fill="#18181b" stroke="#ffde17" stroke-width="4"/>
+            <rect x="270" y="50" width="260" height="130" rx="10" fill="#09090b" stroke="#334155" stroke-width="2"/>
+            <path d="M300 115 L320 95 L340 115 L320 135 Z" fill="#39ff14" opacity="0.8"/>
+            <circle cx="480" cy="115" r="15" fill="#ff3b30"/>
+            <circle cx="505" cy="100" r="8" fill="#ffde17"/>
+            <text x="350" y="125" fill="#ffffff" font-family="monospace" font-size="20" font-weight="bold" letter-spacing="2">VIPWEB</text>
+            <rect x="250" y="195" width="300" height="40" fill="#27272a"/>
+            <circle cx="310" cy="215" r="12" fill="#ef4444"/>
+            <line x1="310" y1="215" x2="310" y2="185" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="310" cy="185" r="10" fill="#ef4444"/>
+            <circle cx="430" cy="215" r="8" fill="#3b82f6"/>
+            <circle cx="460" cy="215" r="8" fill="#22c55e"/>
+            <circle cx="490" cy="215" r="8" fill="#eab308"/>
+          </svg>
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+            <button onclick="launchQuest('vipweb')" class="bg-neonYellow text-black font-bold uppercase text-xs px-6 py-3 rounded-full shadow-lg font-retro">Launch Arcade</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
+          <p class="text-textDim text-sm max-w-md leading-relaxed font-sans">
+            A premium bento arcade hub holding 15 original fast-paced responsive browser games. Fully installable PWA with offline compatibility, neon themes, and leaderboard API.
+          </p>
+          <button onclick="launchQuest('vipweb')" class="border border-textMain text-textMain rounded-full pl-2 pr-6 py-2 flex items-center gap-3 text-xs font-bold uppercase tracking-wider hover:bg-neonYellow hover:text-black hover:border-neonYellow transition-colors w-max group font-sans">
+            <div class="w-8 h-8 bg-textMain text-arcadeBg rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white"><i class="ph-fill ph-play"></i></div>
+            Play Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Quest 2: Anshu4u.xyz Portfolio -->
+      <div class="bento-card rounded-[2.5rem] p-6 pt-8 flex flex-col justify-between group">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <span class="font-retro text-[9px] text-zinc-500 uppercase">Quest 02 · Interactive Lab</span>
+            <h3 class="text-3xl font-bold font-arcade text-textMain mt-1">Anshu4u.xyz</h3>
+          </div>
+          <div class="w-9 h-9 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center"><i class="ph ph-cube"></i></div>
+        </div>
+        
+        <!-- Creative 3D Lab SVG Graphic -->
+        <div class="bg-zinc-100 dark:bg-zinc-900/30 rounded-2xl aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden relative group border border-zinc-200 dark:border-white/5">
+          <svg class="w-full h-full p-4 object-contain transition-transform duration-500 group-hover:scale-105" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 220 L200 150 L350 220 L200 280 Z" stroke="#334155" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <path d="M100 220 L200 170 L300 220" stroke="#475569" stroke-width="1"/>
+            <path d="M200 80 L250 110 L200 140 L150 110 Z" fill="#ffde17" fill-opacity="0.2" stroke="#ffde17" stroke-width="2"/>
+            <path d="M150 110 L200 140 L200 200 L150 170 Z" fill="#ffde17" fill-opacity="0.3" stroke="#ffde17" stroke-width="2"/>
+            <path d="M200 140 L250 110 L250 170 L200 200 Z" fill="#ffde17" fill-opacity="0.4" stroke="#ffde17" stroke-width="2"/>
+            <line x1="200" y1="140" x2="200" y2="40" stroke="#ef4444" stroke-width="2" stroke-dasharray="2 2"/>
+            <text x="210" y="50" fill="#ef4444" font-family="monospace" font-size="12">Y (Up)</text>
+          </svg>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+            <button onclick="launchQuest('anshu4u')" class="bg-neonYellow text-black px-6 py-2 rounded-full font-bold text-xs uppercase font-retro">Enter Lab</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex gap-1.5 mb-4 text-[0.6rem] font-bold">
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Three.js</span>
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">WebGL</span>
+          </div>
+          <p class="text-xs text-textDim leading-relaxed mb-6 font-sans">Interactive 3D engine showcase presenting fluid visual physics and WebGL graphics.</p>
+          <button onclick="launchQuest('anshu4u')" class="text-textMain font-bold uppercase text-xs flex items-center gap-2 hover:text-neonYellow transition-colors font-sans">Launch Project <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Quest 3: gr.vitcoore.xyz (Grocery List Builder) -->
+      <div class="bento-card rounded-[2.5rem] p-6 pt-8 flex flex-col justify-between group">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <span class="font-retro text-[9px] text-zinc-500 uppercase">Quest 03 · Smart Utility</span>
+            <h3 class="text-3xl font-bold font-arcade text-textMain mt-1">gr.vitcoore.xyz</h3>
+          </div>
+          <div class="w-9 h-9 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center"><i class="ph ph-shopping-bag"></i></div>
+        </div>
+        
+        <!-- Grocery List UI Mockup SVG -->
+        <div class="bg-zinc-100 dark:bg-zinc-900/30 rounded-2xl aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden relative group border border-zinc-200 dark:border-white/5">
+          <svg class="w-full h-full p-4 object-contain transition-transform duration-500 group-hover:scale-105" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="110" y="30" width="180" height="240" rx="20" fill="#18181b" stroke="#39ff14" stroke-width="3"/>
+            <rect x="125" y="50" width="150" height="30" rx="6" fill="#27272a"/>
+            <text x="140" y="69" fill="#39ff14" font-family="monospace" font-size="11" font-weight="bold">VITCOORE LIST</text>
+            <rect x="130" y="100" width="14" height="14" rx="3" fill="#39ff14"/>
+            <path d="M133 107 L136 110 L141 103" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <line x1="155" y1="107" x2="250" y2="107" stroke="#ffffff" stroke-width="2" opacity="0.9"/>
+            <rect x="130" y="135" width="14" height="14" rx="3" fill="#39ff14"/>
+            <path d="M133 142 L136 145 L141 138" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <line x1="155" y1="142" x2="230" y2="142" stroke="#ffffff" stroke-width="2" opacity="0.9"/>
+            <rect x="130" y="170" width="14" height="14" rx="3" fill="none" stroke="#52525b" stroke-width="2"/>
+            <line x1="155" y1="177" x2="210" y2="177" stroke="#71717a" stroke-width="2" opacity="0.8"/>
+            <circle cx="200" cy="230" r="16" fill="#39ff14"/>
+            <path d="M200 222 V238 M192 230 H208" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+            <button onclick="launchQuest('gr')" class="bg-neonYellow text-black px-6 py-2 rounded-full font-bold text-xs uppercase font-retro">Make List</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex gap-1.5 mb-4 text-[0.6rem] font-bold">
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Web App</span>
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Offline Sync</span>
+          </div>
+          <p class="text-xs text-textDim leading-relaxed mb-6 font-sans">Sleek digital grocery item generator. Built on reliable local-first sync systems without cloud requirements.</p>
+          <button onclick="launchQuest('gr')" class="text-textMain font-bold uppercase text-xs flex items-center gap-2 hover:text-neonYellow transition-colors font-sans">Launch Project <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Quest 4: Play Portal -->
+      <div class="bento-card rounded-[2.5rem] p-6 pt-8 flex flex-col justify-between group">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <span class="font-retro text-[9px] text-zinc-500 uppercase">Quest 04 · Sandbox</span>
+            <h3 class="text-3xl font-bold font-arcade text-textMain mt-1">Play Portal</h3>
+          </div>
+          <div class="w-9 h-9 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center"><i class="ph ph-sword"></i></div>
+        </div>
+        
+        <!-- GameBoy Console Illustration SVG -->
+        <div class="bg-zinc-100 dark:bg-zinc-900/30 rounded-2xl aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden relative group border border-zinc-200 dark:border-white/5">
+          <svg class="w-full h-full p-4 object-contain transition-transform duration-500 group-hover:scale-105" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="130" y="30" width="140" height="240" rx="15" fill="#3f3f46" stroke="#27272a" stroke-width="4"/>
+            <rect x="145" y="45" width="110" height="90" rx="5" fill="#18181b"/>
+            <rect x="155" y="55" width="90" height="70" rx="2" fill="#8cbf43"/>
+            <rect x="195" y="70" width="10" height="30" fill="#2d4212"/>
+            <rect x="185" y="90" width="30" height="10" fill="#2d4212"/>
+            <rect x="190" y="100" width="20" height="10" fill="#2d4212"/>
+            <path d="M160 185 H190 V200 H160 Z" fill="#18181b"/>
+            <path d="M170 175 H180 V210 H170 Z" fill="#18181b"/>
+            <circle cx="225" cy="200" r="12" fill="#dc2626"/>
+            <circle cx="248" cy="185" r="12" fill="#dc2626"/>
+          </svg>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+            <button onclick="launchQuest('play')" class="bg-neonYellow text-black px-6 py-2 rounded-full font-bold text-xs uppercase font-retro">Play Portal</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex gap-1.5 mb-4 text-[0.6rem] font-bold">
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">HTML5</span>
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Vanilla JS</span>
+          </div>
+          <p class="text-xs text-textDim leading-relaxed mb-6 font-sans">Mini sandbox web gateway holding responsive quick-fire casual puzzle and arcade titles.</p>
+          <button onclick="launchQuest('play')" class="text-textMain font-bold uppercase text-xs flex items-center gap-2 hover:text-neonYellow transition-colors font-sans">Launch Project <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Quest 5: AI Sandbox Project -->
+      <div class="bento-card rounded-[2.5rem] p-6 pt-8 flex flex-col justify-between group">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <span class="font-retro text-[9px] text-zinc-500 uppercase">Quest 05 · Intelligent Web</span>
+            <h3 class="text-3xl font-bold font-arcade text-textMain mt-1">AI.anshu4u</h3>
+          </div>
+          <div class="w-9 h-9 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center"><i class="ph ph-brain"></i></div>
+        </div>
+        
+        <!-- Glowing Neural Network SVG -->
+        <div class="bg-zinc-100 dark:bg-zinc-900/30 rounded-2xl aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden relative group border border-zinc-200 dark:border-white/5">
+          <svg class="w-full h-full p-4 object-contain transition-transform duration-500 group-hover:scale-105" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="200" y1="150" x2="100" y2="80" stroke="#ffde17" stroke-width="1.5" opacity="0.3"/>
+            <line x1="200" y1="150" x2="300" y2="80" stroke="#ffde17" stroke-width="1.5" opacity="0.3"/>
+            <line x1="200" y1="150" x2="150" y2="240" stroke="#ffde17" stroke-width="1.5" opacity="0.3"/>
+            <line x1="200" y1="150" x2="250" y2="240" stroke="#ffde17" stroke-width="1.5" opacity="0.3"/>
+            <line x1="100" y1="80" x2="300" y2="80" stroke="#ffffff" stroke-width="1" opacity="0.2"/>
+            <line x1="150" y1="240" x2="250" y2="240" stroke="#ffffff" stroke-width="1" opacity="0.2"/>
+            <circle cx="200" cy="150" r="18" fill="#ffde17" fill-opacity="0.3"/>
+            <circle cx="200" cy="150" r="10" fill="#ffde17"/>
+            <circle cx="100" cy="80" r="8" fill="#39ff14"/>
+            <circle cx="300" cy="80" r="8" fill="#39ff14"/>
+            <circle cx="150" cy="240" r="8" fill="#ff3b30"/>
+            <circle cx="250" cy="240" r="8" fill="#ff3b30"/>
+          </svg>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+            <button onclick="launchQuest('ai')" class="bg-neonYellow text-black px-6 py-2 rounded-full font-bold text-xs uppercase font-retro">Prompt AI</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex gap-1.5 mb-4 text-[0.6rem] font-bold">
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">AI API</span>
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Client-side</span>
+          </div>
+          <p class="text-xs text-textDim leading-relaxed mb-6 font-sans">Integrating semantic modern models straight into responsive web layers for instant client-side solutions.</p>
+          <button onclick="launchQuest('ai')" class="text-textMain font-bold uppercase text-xs flex items-center gap-2 hover:text-neonYellow transition-colors font-sans">Launch Project <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Quest 6: PDF Downloader -->
+      <div class="bento-card rounded-[2.5rem] p-6 pt-8 flex flex-col justify-between group">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <span class="font-retro text-[9px] text-zinc-500 uppercase">Quest 06 · Document Engine</span>
+            <h3 class="text-3xl font-bold font-arcade text-textMain mt-1">pdf.vitcoore.xyz</h3>
+          </div>
+          <div class="w-9 h-9 rounded-full border border-zinc-300 dark:border-white/10 flex items-center justify-center"><i class="ph ph-file-pdf"></i></div>
+        </div>
+        
+        <!-- Premium PDF Document Layout SVG -->
+        <div class="bg-zinc-100 dark:bg-zinc-900/30 rounded-2xl aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden relative group border border-zinc-200 dark:border-white/5">
+          <svg class="w-full h-full p-4 object-contain transition-transform duration-500 group-hover:scale-105" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="130" y="40" width="140" height="200" rx="12" fill="#18181b" stroke="#ff3b30" stroke-width="3"/>
+            <rect x="145" y="60" width="110" height="25" rx="4" fill="#ff3b30"/>
+            <text x="185" y="77" fill="#ffffff" font-family="monospace" font-size="12" font-weight="bold">PDF</text>
+            <line x1="145" y1="110" x2="255" y2="110" stroke="#3f3f46" stroke-width="3" stroke-linecap="round"/>
+            <line x1="145" y1="130" x2="235" y2="130" stroke="#3f3f46" stroke-width="3" stroke-linecap="round"/>
+            <line x1="145" y1="150" x2="245" y2="150" stroke="#3f3f46" stroke-width="3" stroke-linecap="round"/>
+            <path d="M200 170 V210 M185 195 L200 210 L215 195" stroke="#ffde17" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+            <button onclick="launchQuest('pdf')" class="bg-neonYellow text-black px-6 py-2 rounded-full font-bold text-xs uppercase font-retro">Download PDFs</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex gap-1.5 mb-4 text-[0.6rem] font-bold">
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Downloader</span>
+            <span class="bg-zinc-200 dark:bg-white/10 text-textMain px-2 py-0.5 rounded-sm font-retro">Serverless</span>
+          </div>
+          <p class="text-xs text-textDim leading-relaxed mb-6 font-sans">High-speed serverless PDF document generator. Instant conversions and clean asset exports.</p>
+          <button onclick="launchQuest('pdf')" class="text-textMain font-bold uppercase text-xs flex items-center gap-2 hover:text-neonYellow transition-colors font-sans">Launch Project <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- UNLOCKED ACHIEVEMENTS -->
+  <section class="mt-32 max-w-4xl mx-auto">
+    <h2 class="font-arcade text-4xl text-center mb-8 uppercase text-textMain tracking-wide">🏆 Quest Accomplishments 🏆</h2>
+    
+    <div class="flex flex-col gap-4 font-sans">
+      
+      <!-- Achievement 1 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between p-5 bg-surface border border-zinc-200 dark:border-white/5 rounded-2xl cursor-pointer hover:border-neonYellow transition-colors group" onclick="showFlexDetail('VipWeb Hub launched with global responsive games')">
+        <div class="flex items-center gap-6 w-full sm:w-auto mb-4 sm:mb-0">
+          <span class="font-retro text-[10px] text-zinc-500 w-12">2025</span>
+          <div class="text-neonYellow group-hover:scale-110 transition-transform"><i class="ph-fill ph-game-controller text-3xl"></i></div>
+          <h4 class="font-bold text-xl text-textMain">VipWeb Arcade Domination</h4>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-textDim">
+          <span class="bg-zinc-200 dark:bg-zinc-900 px-3 py-1.5 rounded-full font-semibold">15+ Titles Shipped</span>
+          <i class="ph ph-caret-right text-zinc-500"></i>
+        </div>
+      </div>
+
+      <!-- Achievement 2 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between p-4 pl-6 bg-textMain text-arcadeBg rounded-2xl shadow-lg cursor-pointer transform hover:scale-[1.01] transition-transform" onclick="showFlexDetail('Advanced Offline-first architecture and PWA compliance master class')">
+        <div class="flex items-center gap-6 w-full sm:w-auto mb-4 sm:mb-0">
+          <span class="font-retro text-[9px] text-zinc-400 w-12">2024</span>
+          <div class="w-10 h-10 rounded-full bg-arcadeBg text-neonYellow flex items-center justify-center"><i class="ph-fill ph-shield-checkered text-xl"></i></div>
+          <h4 class="font-bold text-xl">PWA Master Certificate</h4>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-semibold">
+          <span class="bg-arcadeBg text-textMain px-3 py-1.5 rounded-full font-retro text-[8px]">Offline First</span>
+          <i class="ph ph-caret-right"></i>
+        </div>
+      </div>
+
+      <!-- Achievement 3 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between p-5 bg-surface border border-zinc-200 dark:border-white/5 rounded-2xl cursor-pointer hover:border-neonYellow transition-colors group" onclick="showFlexDetail('Graduated from Deoghar College, Deoghar. Degree is just a paper, coding skills run the universe.')">
+        <div class="flex items-center gap-6 w-full sm:w-auto mb-4 sm:mb-0">
+          <span class="font-retro text-[10px] text-zinc-500 w-12">2023</span>
+          <div class="text-neonYellow group-hover:scale-110 transition-transform"><i class="ph-fill ph-graduation-cap text-3xl"></i></div>
+          <h4 class="font-bold text-xl text-textMain">Academic Sidequest</h4>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-textDim">
+          <span class="bg-zinc-200 dark:bg-zinc-900 px-3 py-1.5 rounded-full font-semibold">B.Sc Graduate</span>
+          <i class="ph ph-caret-right text-zinc-500"></i>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- HIGHLIGHT CARD -->
+  <section class="mt-32 bg-surface rounded-[3rem] p-8 lg:p-16 flex flex-col lg:flex-row items-center gap-12 overflow-hidden relative border border-zinc-200 dark:border-white/5">
+    <div class="flex-1 z-10">
+      <div class="bg-zinc-100 dark:bg-white/5 border border-zinc-300 dark:border-white/10 text-textMain px-3 py-1.5 rounded-sm flex items-center gap-2 font-black tracking-tight w-max mb-10">
+        <div class="text-lg leading-none">.: VIT</div>
+        <div class="text-[0.5rem] leading-tight text-left uppercase font-retro">VITCOORE<br>SYSTEM</div>
+      </div>
+      <h2 class="font-arcade text-5xl leading-none mb-6 text-textMain">CODE OR DIE.<br>NO DEGREE NEEDED.</h2>
+      <div class="w-12 h-1 bg-neonYellow mb-6"></div>
+      <p class="text-textDim text-sm max-w-sm mb-10 leading-relaxed font-sans">
+        "College gave me a piece of paper, but web console errors gave me resilience. Shipped premium products that users actually open."
+      </p>
+      <button onclick="window.open('https://vipweb.shop','_blank')" class="bg-textMain text-arcadeBg rounded-full pl-2 pr-6 py-2 flex items-center gap-4 text-xs font-bold uppercase tracking-wider hover:scale-105 transition-transform w-max">
+        <div class="w-8 h-8 bg-neonYellow rounded-full flex items-center justify-center text-black"><i class="ph-fill ph-play"></i></div>
+        Access Main Terminal
+      </button>
+    </div>
+    <div class="flex-1 w-full bg-zinc-200 dark:bg-zinc-900/40 rounded-3xl overflow-hidden shadow-2xl z-10 aspect-[16/9] relative group cursor-pointer" onclick="window.open('https://instagram.com/vitcoore','_blank')">
+      <img src="myimage.jpg" alt="Anshu Rajhans vitcoore" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" onerror="this.src='https://placehold.co/800x450/121212/ffde17?text=Anshu+Rajhans+(vitcoore)'; this.onerror=null;">
+      <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+        <span class="bg-neonYellow text-black px-6 py-3 rounded-full text-xs font-bold font-retro tracking-widest uppercase">View @vitcoore</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL LINK GRID -->
+  <div class="mt-32 pt-12 border-t border-zinc-200 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 text-textMain">
+    <h2 class="font-arcade text-4xl lg:text-5xl tracking-tight leading-none text-center md:text-left">CATCH THE VIBE<br>ON SOCIAL CORES:</h2>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="https://github.com/vitcoore" target="_blank" class="w-14 h-14 rounded-2xl border-2 border-zinc-300 dark:border-white/10 flex items-center justify-center hover:bg-neonYellow hover:text-black hover:border-neonYellow transition-all"><i class="ph ph-github-logo text-3xl"></i></a>
+      <a href="https://instagram.com/vitcoore" target="_blank" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 text-white flex items-center justify-center shadow-lg transform -translate-y-2 hover:scale-110 transition-all"><i class="ph-fill ph-instagram-logo text-3xl"></i></a>
+      <a href="https://youtube.com/@vitcoore" target="_blank" class="w-14 h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all"><i class="ph ph-youtube-logo text-3xl"></i></a>
+      <a href="mailto:vipwebff@gmail.com" class="w-14 h-14 rounded-2xl border-2 border-zinc-300 dark:border-white/10 flex items-center justify-center hover:bg-neonYellow hover:text-black hover:border-neonYellow transition-all"><i class="ph ph-envelope-simple text-3xl"></i></a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-20 pt-8 border-t border-zinc-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="bg-textMain text-arcadeBg px-3 py-1 rounded-sm flex items-center gap-2 font-black tracking-tight cursor-pointer" onclick="triggerEasterEgg()">
+      <div class="text-lg leading-none">.: VIT</div>
+      <div class="text-[0.5rem] leading-tight text-left uppercase font-retro">VITCOORE<br>SYSTEM</div>
+    </div>
+    <ul class="flex flex-wrap justify-center gap-6 text-xs font-bold uppercase tracking-widest text-textDim font-sans">
+      <li><a href="#" onclick="scrollToWorks(); return false;" class="hover:text-neonYellow">Quests</a></li>
+      <li><a href="#" onclick="showInfoAlert(); return false;" class="hover:text-neonYellow">About</a></li>
+      <li><a href="#" onclick="showAwardVibes(); return false;" class="hover:text-neonYellow">Stats</a></li>
+      <li><a href="mailto:vipwebff@gmail.com" class="hover:text-neonYellow">Contact</a></li>
+    </ul>
+    <div class="text-[0.6rem] text-center md:text-right text-textDim uppercase tracking-widest leading-relaxed font-retro">
+      2026 | ANSHU RAJHANS<br>CODE IS COLDER THAN DEGREE
+    </div>
+  </footer>
+
+</div>
+
+<!-- SIDEBAR OVERLAYS -->
+<div class="sidebar-overlay fixed inset-0 bg-black/60 backdrop-blur-md z-40 hidden" onclick="closeMenu()"></div>
+<div class="sidebar fixed top-0 left-0 h-full w-[300px] max-w-[80vw] bg-surface z-50 border-r border-white/5 p-8 flex flex-col gap-8 -translate-x-full transition-transform duration-300">
+  <h2 class="font-arcade text-3xl text-textMain tracking-tighter">VITCOORE ARCADE</h2>
+  <div class="flex flex-col gap-2">
+    <div class="flex items-center gap-4 py-4 border-b border-white/5 text-textMain font-bold cursor-pointer hover:text-neonYellow" onclick="closeMenu(); scrollToWorks();"><i class="fas fa-gamepad text-neonYellow"></i> Main Quests</div>
+    <div class="flex items-center gap-4 py-4 border-b border-white/5 text-textMain font-bold cursor-pointer hover:text-neonYellow" onclick="closeMenu(); showInfoAlert();"><i class="fas fa-info-circle text-neonYellow"></i> Level Stats</div>
+    <div class="flex items-center gap-4 py-4 border-b border-white/5 text-textMain font-bold cursor-pointer hover:text-neonYellow" onclick="closeMenu(); showAwardVibes();"><i class="fas fa-trophy text-neonYellow"></i> Global Trophies</div>
+    <div class="flex items-center gap-4 py-4 border-b border-white/5 text-textMain font-bold cursor-pointer hover:text-neonYellow" onclick="closeMenu(); showStormSettings();"><i class="ph ph-gear text-neonYellow"></i> Storm Settings</div>
+    <div id="install-menu-item" class="flex items-center gap-4 py-4 border-b border-white/5 text-textMain font-bold cursor-pointer hover:text-neonYellow hidden" onclick="closeMenu(); triggerInstall();"><i class="fas fa-download text-neonYellow"></i> Install Portal</div>
+  </div>
+</div>
+
+<script>
+  // Dynamic Manifest Construction
+  const manifestObj = { 
+    name: "Vitcoore Game Terminal", 
+    short_name: "vitcoore", 
+    start_url: ".", 
+    display: "standalone", 
+    background_color: "#121212", 
+    theme_color: "#ffde17", 
+    icons: [{ 
+      src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iIzEyMTIxMiIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQwIiBmaWxsPSIjZmZkZTE3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WQzwvdGV4dD48L3N2Zz4=", 
+      sizes: "192x192 512x512", 
+      type: "image/svg+xml" 
+    }] 
+  };
+  document.getElementById('dynamic-manifest').href = URL.createObjectURL(new Blob([JSON.stringify(manifestObj)], {type: 'application/json'}));
+  
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([`
+      const CACHE_NAME='vitcoore-terminal-v1';
+      self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE_NAME)));
+      self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+    `], {type:'application/javascript'}))).catch(()=>{});
+  }
+
+  // APP INITIALIZATION / SPLASH SCREEN FADE OUT + REMOVE FROM LAYOUT
+  let appInitialized = false;
+
+  function hideSplash() {
+    if (appInitialized) return;
+    appInitialized = true;
+
+    const splash = document.getElementById('splash');
+    const app = document.getElementById('app');
+    
+    if (splash) {
+      splash.style.opacity = '0';
+      splash.style.visibility = 'hidden';
+      // After transition, remove from layout completely
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 500);
+      app.classList.remove('hidden');
+      
+      init3D();
+
+      iziToast.show({
+        theme: 'dark',
+        title: 'Console Booted',
+        message: 'Welcome to Vitcoore Arcade System! 🌍',
+        backgroundColor: '#ffde17',
+        titleColor: '#000000',
+        messageColor: '#000000',
+        position: 'topRight',
+        timeout: 4000
+      });
+    }
+  }
+
+  window.addEventListener('load', hideSplash);
+  setTimeout(hideSplash, 1800);
+
+  // LIGHT/DARK THEME IMPLEMENTATION
+  const bodyEl = document.body;
+  const themeIcon = document.getElementById('themeIcon');
+  const metaTheme = document.getElementById('meta-theme-color');
+
+  if (localStorage.theme === 'light') {
+    bodyEl.classList.add('light-theme');
+    updateThemeUI(false);
+  } else {
+    updateThemeUI(true);
+  }
+
+  function toggleTheme() {
+    bodyEl.classList.toggle('light-theme');
+    const isDark = !bodyEl.classList.contains('light-theme');
+    localStorage.theme = isDark ? 'dark' : 'light';
+    updateThemeUI(isDark);
+
+    iziToast.show({
+      title: 'Console Theme',
+      message: `${isDark ? 'Matt Dark' : 'Matt Light'} loaded.`,
+      position: 'bottomCenter',
+      timeout: 2000
+    });
+  }
+
+  function updateThemeUI(isDark) {
+    if (isDark) {
+      themeIcon.className = 'fas fa-sun text-neonYellow';
+      metaTheme.setAttribute('content', '#121212');
+    } else {
+      themeIcon.className = 'fas fa-moon text-zinc-800';
+      metaTheme.setAttribute('content', '#f5f5f7');
+    }
+  }
+
+  // NAVIGATION & MENU CONTROL
+  function toggleMenu() {
+    document.querySelector('.sidebar').classList.remove('-translate-x-full');
+    document.querySelector('.sidebar-overlay').classList.remove('hidden');
+  }
+  function closeMenu() {
+    document.querySelector('.sidebar').classList.add('-translate-x-full');
+    document.querySelector('.sidebar-overlay').classList.add('hidden');
+  }
+
+  function scrollToWorks() {
+    document.getElementById('works-grid')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // GAME QUEST LAUNCHER
+  function launchQuest(type) {
+    let url = '';
+    switch(type) {
+      case 'vipweb': url = 'https://vipweb.shop'; break;
+      case 'anshu4u': url = 'https://anshu4u.xyz'; break;
+      case 'gr': url = 'https://gr.vitcoore.xyz'; break;
+      case 'play': url = 'https://play.anshu4u.xyz'; break;
+      case 'ai': url = 'https://ai.anshu4u.xyz'; break;
+      case 'pdf': url = 'https://pdf.vitcoore.xyz'; break;
+      default: url = 'https://github.com/vitcoore';
+    }
+    window.open(url, '_blank');
+  }
+
+  // CUSTOMIZABLE STORM SETTINGS DIALOG (DEFAULT LOW VIBRATION, NO SHAKE)
+  if(!localStorage.getItem('storm-vibe')) localStorage.setItem('storm-vibe', 'low');
+  if(!localStorage.getItem('storm-shake')) localStorage.setItem('storm-shake', 'none');
+
+  function showStormSettings() {
+    const currentVibe = localStorage.getItem('storm-vibe') || 'low';
+    const currentShake = localStorage.getItem('storm-shake') || 'none';
+
+    Swal.fire({
+      title: '⛈️ Storm Core Settings',
+      html: `
+        <div class="text-left space-y-4 font-sans text-sm">
+          <div>
+            <label class="block font-bold mb-1.5 text-textMain">Haptic Vibration:</label>
+            <select id="vibe-select" class="w-full bg-zinc-800 text-white rounded-lg p-2.5 border border-zinc-700 outline-none">
+              <option value="none" ${currentVibe === 'none' ? 'selected' : ''}>None / Off</option>
+              <option value="low" ${currentVibe === 'low' ? 'selected' : ''}>Low (Short Tap) - Default</option>
+              <option value="medium" ${currentVibe === 'medium' ? 'selected' : ''}>Medium</option>
+              <option value="high" ${currentVibe === 'high' ? 'selected' : ''}>High (Double Rumble)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1.5 text-textMain">Screen Thunder Shake:</label>
+            <select id="shake-select" class="w-full bg-zinc-800 text-white rounded-lg p-2.5 border border-zinc-700 outline-none">
+              <option value="none" ${currentShake === 'none' ? 'selected' : ''}>No Shake - Default</option>
+              <option value="light" ${currentShake === 'light' ? 'selected' : ''}>Light Rumble</option>
+              <option value="strong" ${currentShake === 'strong' ? 'selected' : ''}>Strong Rumble</option>
+            </select>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Save Settings',
+      cancelButtonText: 'Cancel',
+      background: 'var(--surface-color)',
+      color: 'var(--text-primary)',
+      customClass: {
+        confirmButton: 'bg-neonYellow text-black px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] font-retro border-none outline-none mr-2',
+        cancelButton: 'bg-zinc-700 text-white px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] font-retro border-none outline-none'
+      },
+      preConfirm: () => {
+        return {
+          vibe: document.getElementById('vibe-select').value,
+          shake: document.getElementById('shake-select').value
+        }
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.setItem('storm-vibe', result.value.vibe);
+        localStorage.setItem('storm-shake', result.value.shake);
+        
+        iziToast.success({
+          title: 'Settings Saved',
+          message: 'Feedback preferences updated successfully.',
+          position: 'bottomCenter',
+          timeout: 2000
+        });
+      }
+    });
+  }
+
+  function showInfoAlert() {
+    Swal.fire({
+      title: '⚡ Profile Inspection',
+      html: `
+        <div class="text-left font-sans text-sm space-y-4">
+          <p><strong>Name:</strong> Anshu Rajhans (vitcoore)</p>
+          <p><strong>Origin:</strong> Deoghar College, Deoghar (B.Sc Graduate)</p>
+          <p><strong>Quest Type:</strong> Front-End Architect & Offline-First Game Creator</p>
+          <p><strong>Mastery:</strong> HTML5/Vanilla JS, WebGL, Progressive Web Apps, Local Storage databases.</p>
+          <p class="text-center text-neonYellow font-retro text-[10px] mt-4 uppercase">"Degree is just a paper — my code runs live."</p>
+        </div>
+      `,
+      confirmButtonText: 'Accept Vibe',
+      background: 'var(--surface-color)',
+      color: 'var(--text-primary)',
+      customClass: {
+        confirmButton: 'bg-neonYellow text-black px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] font-retro border-none outline-none'
+      }
+    });
+  }
+
+  function showAwardVibes() {
+    Swal.fire({
+      title: '🏆 Trophies Unlocked',
+      text: 'VipWeb Hub launch honors, PWA deployment excellence badges, and active open-source micro-modules on GitHub.',
+      icon: 'success',
+      confirmButtonText: 'Resume Quest',
+      background: 'var(--surface-color)',
+      color: 'var(--text-primary)',
+      customClass: {
+        confirmButton: 'bg-neonYellow text-black px-6 py-2.5 rounded-full font-bold text-xs uppercase'
+      }
+    });
+  }
+
+  function showFlexDetail(msg) {
+    iziToast.info({
+      title: 'XP Unlocked',
+      message: msg,
+      position: 'topCenter',
+      backgroundColor: '#141414',
+      titleColor: '#39ff14',
+      messageColor: '#ffffff',
+      timeout: 4000
+    });
+  }
+
+  function triggerEasterEgg() {
+    if ('speechSynthesis' in window) {
+      let utter = new SpeechSynthesisUtterance("Vitcoore Storm Online");
+      utter.rate = 0.8;
+      utter.pitch = 0.5;
+      speechSynthesis.speak(utter);
+    }
+    iziToast.success({
+      title: '⛈️ Storm Core',
+      message: 'You unlocked the storm core master trigger!',
+      position: 'bottomRight'
+    });
+  }
+
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-menu-item').classList.remove('hidden');
+  });
+  function triggerInstall() { if(deferredPrompt) deferredPrompt.prompt(); }
+
+  // STATIC 3D LOW-POLY THUNDER CLOUD
+  function init3D() {
+    const container3d = document.getElementById('three-canvas-container');
+    if (!container3d) return;
+
+    const width = container3d.clientWidth || 300;
+    const height = container3d.clientHeight || 300;
+    const scene = new THREE.Scene();
+    
+    const aspect = width / height;
+    const camera = new THREE.OrthographicCamera(-2.5 * aspect, 2.5 * aspect, 2.5, -2.5, 1, 100);
+    camera.position.set(0, 0, 10);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    container3d.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.1);
+    sunLight.position.set(5, 10, 8);
+    const lightningFlashLight = new THREE.PointLight(0x00f0ff, 0, 15);
+    lightningFlashLight.position.set(0, 0, 0);
+    scene.add(ambientLight, sunLight, lightningFlashLight);
+
+    const cloudGroup = new THREE.Group();
+    const cloudMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.95, metalness: 0.05, emissive: 0x000000 });
+    const sphereGeo = new THREE.SphereGeometry(0.8, 16, 16);
+    const cloudSegments = [
+      { p: [0, 0, 0], s: [1.2, 0.9, 1.1] },
+      { p: [-0.7, -0.1, 0.1], s: [0.8, 0.7, 0.8] },
+      { p: [0.7, -0.1, -0.1], s: [0.85, 0.75, 0.85] },
+      { p: [0.2, 0.5, -0.1], s: [0.75, 0.7, 0.75] },
+      { p: [-0.3, -0.2, 0.4], s: [0.6, 0.5, 0.6] }
+    ];
+
+    cloudSegments.forEach(data => {
+      const segMesh = new THREE.Mesh(sphereGeo, cloudMat);
+      segMesh.position.set(...data.p);
+      segMesh.scale.set(...data.s);
+      const edges = new THREE.EdgesGeometry(sphereGeo);
+      const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.08, transparent: true }));
+      segMesh.add(line);
+      cloudGroup.add(segMesh);
+    });
+    scene.add(cloudGroup);
+
+    const lightningGeo = new THREE.BufferGeometry();
+    const lightningMat = new THREE.LineBasicMaterial({ color: 0x39ff14, linewidth: 3 }); 
+    const lightningLine = new THREE.Line(lightningGeo, lightningMat);
+    lightningLine.visible = false;
+    scene.add(lightningLine);
+
+    cloudGroup.rotation.y = -0.2;
+    cloudGroup.position.set(0, 0.3, 0);
+
+    function triggerLightningStrike() {
+      const boltPoints = [];
+      let curPoint = new THREE.Vector3((Math.random() - 0.5) * 0.4, -0.2, 0.1);
+      boltPoints.push(curPoint.clone());
+      for(let i=0; i<4; i++) {
+        curPoint.x += (Math.random() - 0.5) * 0.55;
+        curPoint.y -= 0.45;
+        curPoint.z += (Math.random() - 0.5) * 0.25;
+        boltPoints.push(curPoint.clone());
+      }
+      lightningGeo.setFromPoints(boltPoints);
+      let count = 0;
+      const flicker = setInterval(() => {
+        const on = count % 2 === 0;
+        lightningLine.visible = on;
+        lightningFlashLight.intensity = on ? 14 : 0;
+        cloudMat.emissive.setHex(on ? 0x2244aa : 0x000000); 
+        count++;
+        if(count > 5) {
+          clearInterval(flicker);
+          lightningLine.visible = false;
+          lightningFlashLight.intensity = 0;
+          cloudMat.emissive.setHex(0x000000);
+        }
+      }, 50);
+
+      const vibePreference = localStorage.getItem('storm-vibe') || 'low';
+      if ('vibrate' in navigator && vibePreference !== 'none') {
+        if (vibePreference === 'low') navigator.vibrate(25);
+        else if (vibePreference === 'medium') navigator.vibrate(60);
+        else if (vibePreference === 'high') navigator.vibrate([100, 50, 100]);
+      }
+
+      const shakePreference = localStorage.getItem('storm-shake') || 'none';
+      const mainApp = document.getElementById('app');
+      if (mainApp && shakePreference !== 'none') {
+        const shakeClass = shakePreference === 'light' ? 'animate-rumble-light' : 'animate-rumble-strong';
+        mainApp.classList.add(shakeClass);
+        setTimeout(() => { mainApp.classList.remove(shakeClass); }, 280);
+      }
+    }
+
+    function loopStrikes() {
+      const nextStrike = 4000 + Math.random() * 3000;
+      setTimeout(() => { triggerLightningStrike(); loopStrikes(); }, nextStrike);
+    }
+    loopStrikes();
+
+    function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+    animate();
+
+    window.addEventListener('resize', () => {
+      const w = container3d.clientWidth;
+      const h = container3d.clientHeight;
+      const newAspect = w / h;
+      camera.left = -2.5 * newAspect;
+      camera.right = 2.5 * newAspect;
+      camera.top = 2.5;
+      camera.bottom = -2.5;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+  }
+</script>
+</body>
+</html>
